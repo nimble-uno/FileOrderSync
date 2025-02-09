@@ -14,6 +14,31 @@ const upload = multer({
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: false, limit: '3mb' }));
 
+// Add CORS headers for production
+app.use((req, res, next) => {
+  const allowedOrigins = ['http://localhost:5000'];
+
+  // Add your production domain to allowed origins when deployed
+  if (process.env.VERCEL_URL) {
+    allowedOrigins.push(`https://${process.env.VERCEL_URL}`);
+  }
+
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
 // Add multer middleware to handle file uploads
 app.use((req, res, next) => {
   if (req.path === '/api/upload') {
